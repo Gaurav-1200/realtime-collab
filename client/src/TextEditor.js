@@ -5,8 +5,9 @@ import {io} from "socket.io-client";
 import {useParams} from "react-router-dom";
 const TextEditor = () => {
     
-    const {id:documentId} =useParams()
-    var toolbarOptions = [
+    const {id:documentId} =useParams();
+    const SAVE_INTERVAL_MS=2000;
+    const toolbarOptions = [
         ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
         ['blockquote', 'code-block'],
       
@@ -46,6 +47,20 @@ const TextEditor = () => {
 
         socket.emit('get-document',documentId);
     },[documentId,socket,quill]);
+
+    useEffect(()=>{
+        if(socket==null || quill==null) return;
+        
+
+        const interval =setInterval(()=>{
+            socket.emit('save-document',quill.getContents());
+        },SAVE_INTERVAL_MS)
+
+        return ()=>{
+            clearInterval(interval);
+        }
+    },[socket,quill]);
+
 
     useEffect(()=>{
         if(socket==null || quill==null) return;
